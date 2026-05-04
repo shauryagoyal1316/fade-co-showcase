@@ -47,7 +47,7 @@ export default function Hero() {
         </div>
 
         <div className="mt-24 flex items-center justify-between border-t border-border pt-8">
-          <a href="#services" className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-foreground/60 hover:text-primary transition-colors duration-300">
+          <a href="#services" className="flex items-center gap-3 font-display text-xs uppercase tracking-[0.3em] text-foreground/60 hover:text-primary transition-colors duration-300">
             <ArrowDown className="h-4 w-4" /> Scroll
           </a>
           <div className="hidden sm:flex items-center gap-8 text-xs uppercase tracking-[0.3em] text-foreground/60">
