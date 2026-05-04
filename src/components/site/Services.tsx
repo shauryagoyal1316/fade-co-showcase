@@ -18,8 +18,6 @@ const snippets = [
 export default function Services() {
   const sectionRef  = useRef<HTMLElement>(null);
   const scissorsRef = useRef<HTMLDivElement>(null);
-  const heading1Ref = useRef<HTMLHeadingElement>(null);
-  const heading2Ref = useRef<HTMLHeadingElement>(null);
   const snippetsRef = useRef<HTMLDivElement>(null);
   const visibleRef  = useRef(false);
   const rafRef      = useRef<number>(0);
@@ -51,10 +49,6 @@ export default function Services() {
         snippetsRef.current.style.opacity = sOp.toFixed(4);
       }
 
-      // Heading shifts to Cormorant when scissors crosses its area (~left third)
-      const inZone = p > 0.32 && p < 0.52;
-      if (heading1Ref.current) heading1Ref.current.style.opacity = inZone ? "0" : "1";
-      if (heading2Ref.current) heading2Ref.current.style.opacity = inZone ? "1" : "0";
     };
 
     const onScroll = () => {
@@ -160,31 +154,10 @@ export default function Services() {
         <div className="grid gap-12 md:grid-cols-12 mb-20">
           <div className="md:col-span-5 reveal">
             <span className="text-xs uppercase tracking-[0.3em] text-primary">— Services</span>
-            <div className="relative mt-6">
-              <h2
-                ref={heading1Ref}
-                className="font-display text-5xl md:text-6xl leading-[1.02]"
-                style={{ transition: "opacity 200ms cubic-bezier(0.16,1,0.3,1)" }}
-              >
-                Six things,<br />
-                <span className="italic font-light">done properly.</span>
-              </h2>
-              <h2
-                ref={heading2Ref}
-                className="absolute inset-0 text-5xl md:text-6xl leading-[1.02]"
-                aria-hidden="true"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontStyle: "italic",
-                  fontWeight: 300,
-                  opacity: 0,
-                  transition: "opacity 200ms cubic-bezier(0.16,1,0.3,1)",
-                }}
-              >
-                Six things,<br />
-                <span>done properly.</span>
-              </h2>
-            </div>
+            <h2 className="mt-6 font-display text-5xl md:text-6xl leading-[1.02]">
+              Six things,<br />
+              <span className="italic font-light">done properly.</span>
+            </h2>
           </div>
           <div className="md:col-span-6 md:col-start-7 reveal flex items-end">
             <p className="text-foreground/70 text-base leading-relaxed">
