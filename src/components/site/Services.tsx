@@ -9,145 +9,158 @@ const services = [
   { name: "Kid's Cut", price: 25, time: "25 min", desc: "Patient hands, no tears, lollipop included.", featured: false },
 ];
 
-function ScissorsSVG() {
-  return (
-    <svg
-      width="72"
-      height="52"
-      viewBox="0 0 72 52"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {/* Top blade */}
-      <path
-        d="M36 26 L70 18"
-        stroke="#C9A84C"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      {/* Bottom blade */}
-      <path
-        d="M36 26 L70 34"
-        stroke="#C9A84C"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      {/* Top handle ring */}
-      <circle cx="10" cy="13" r="9" stroke="#C9A84C" strokeWidth="1.5" fill="none" />
-      {/* Bottom handle ring */}
-      <circle cx="10" cy="39" r="9" stroke="#C9A84C" strokeWidth="1.5" fill="none" />
-      {/* Top handle arm */}
-      <path
-        d="M17 17 L36 26"
-        stroke="#C9A84C"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* Bottom handle arm */}
-      <path
-        d="M17 35 L36 26"
-        stroke="#C9A84C"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      {/* Pivot screw */}
-      <circle cx="36" cy="26" r="2.5" fill="#C9A84C" opacity="0.7" />
-    </svg>
-  );
-}
+// Two short snippets that sit between the open scissor blades
+const snippets = [
+  { q: "Best fade in Brooklyn.", a: "Marcus D." },
+  { q: "Worth the trip every time.", a: "Eli M." },
+];
 
 export default function Services() {
-  const sectionRef = useRef<HTMLElement>(null);
+  const sectionRef  = useRef<HTMLElement>(null);
   const scissorsRef = useRef<HTMLDivElement>(null);
   const heading1Ref = useRef<HTMLHeadingElement>(null);
   const heading2Ref = useRef<HTMLHeadingElement>(null);
-  const isVisibleRef = useRef(false);
-  const rafIdRef = useRef<number>(0);
+  const snippetsRef = useRef<HTMLDivElement>(null);
+  const visibleRef  = useRef(false);
+  const rafRef      = useRef<number>(0);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
 
-    const computeProgress = () => {
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = rect.height + vh;
-      const filled = vh - rect.top;
-      const p = Math.max(0, Math.min(1, filled / total));
+    const tick = () => {
+      const rect  = section.getBoundingClientRect();
+      const vh    = window.innerHeight;
+      const p     = Math.max(0, Math.min(1, (vh - rect.top) / (rect.height + vh)));
+
+      // Bell-curve scale: tiny at edges, full-size at centre
+      const scale = 0.18 + 1.02 * Math.sin(p * Math.PI);
+      // Fade in/out at the very edges
+      const opacity = Math.min(1, Math.min(p * 9, (1 - p) * 9));
+      // Horizontal: centre of element at 50vw when p=0.5
+      const xExpr = `calc(${(p - 0.5) * 200}vw - 50%)`;
 
       if (scissorsRef.current) {
-        const xVw = p * 220 - 110;
-        // Fade in first 12%, stay full, fade out last 12%
-        const opacity = Math.min(1, Math.min(p * 8.5, (1 - p) * 8.5));
-        scissorsRef.current.style.transform = `translateX(calc(${xVw}vw - 36px))`;
-        scissorsRef.current.style.opacity = String(opacity);
+        scissorsRef.current.style.transform = `translateX(${xExpr}) scale(${scale.toFixed(4)})`;
+        scissorsRef.current.style.opacity   = opacity.toFixed(4);
       }
 
-      // Shift heading to Cormorant Garamond italic when scissors cross the heading area
-      const inZone = p > 0.30 && p < 0.54;
-      if (heading1Ref.current) {
-        heading1Ref.current.style.opacity = inZone ? "0" : "1";
+      // Snippets visible only when scissors is large enough to read
+      if (snippetsRef.current) {
+        const sOp = Math.max(0, Math.min(1, (scale - 0.72) / 0.35));
+        snippetsRef.current.style.opacity = sOp.toFixed(4);
       }
-      if (heading2Ref.current) {
-        heading2Ref.current.style.opacity = inZone ? "1" : "0";
-      }
+
+      // Heading shifts to Cormorant when scissors crosses its area (~left third)
+      const inZone = p > 0.32 && p < 0.52;
+      if (heading1Ref.current) heading1Ref.current.style.opacity = inZone ? "0" : "1";
+      if (heading2Ref.current) heading2Ref.current.style.opacity = inZone ? "1" : "0";
     };
 
     const onScroll = () => {
-      if (!isVisibleRef.current) return;
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = requestAnimationFrame(computeProgress);
+      if (!visibleRef.current) return;
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(tick);
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        isVisibleRef.current = entries[0].isIntersecting;
-        if (isVisibleRef.current) computeProgress();
-      },
+    const io = new IntersectionObserver(
+      ([e]) => { visibleRef.current = e.isIntersecting; if (e.isIntersecting) tick(); },
       { threshold: 0 }
     );
-
-    observer.observe(section);
+    io.observe(section);
     window.addEventListener("scroll", onScroll, { passive: true });
-    computeProgress();
+    tick();
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      observer.disconnect();
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      io.disconnect();
+      cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
   return (
     <section id="services" ref={sectionRef} className="relative py-24 md:py-32">
-      {/* Scissors sweeper track — overflow hidden clips at section edges, no layout shift */}
+
+      {/* ── Scissors sweep track ── */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0"
-        style={{ top: "45%", height: "52px", overflow: "hidden" }}
+        style={{ top: "38%", height: "120px", overflow: "hidden" }}
       >
+        {/*
+          left:50% + translateX(-50%) centres the element at the viewport midpoint.
+          The extra (p-0.5)*200 vw term slides it L→R as user scrolls.
+          scale() grows from ~0.18 → ~1.2 → ~0.18 (bell curve).
+        */}
         <div
           ref={scissorsRef}
-          className="absolute top-0"
           style={{
-            left: 0,
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            marginTop: "-50px",   /* half of SVG height */
             opacity: 0,
             willChange: "transform, opacity",
-            transform: "translateX(calc(-110vw - 36px))",
-            filter: "drop-shadow(0 0 10px hsl(43 53% 54% / 0.45))",
+            transformOrigin: "center center",
+            transform: "translateX(calc(-100vw - 50%)) scale(0.18)",
           }}
         >
-          <ScissorsSVG />
+          {/* SVG: handles LEFT, wide-open blades RIGHT */}
+          <svg width="300" height="100" viewBox="0 0 300 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Handle rings */}
+            <circle cx="22" cy="22" r="18" stroke="#C9A84C" strokeWidth="1.5"/>
+            <circle cx="22" cy="78" r="18" stroke="#C9A84C" strokeWidth="1.5"/>
+            {/* Arms to pivot */}
+            <line x1="38" y1="28" x2="115" y2="50" stroke="#C9A84C" strokeWidth="2" strokeLinecap="round"/>
+            <line x1="38" y1="72" x2="115" y2="50" stroke="#C9A84C" strokeWidth="2" strokeLinecap="round"/>
+            {/* Open blades */}
+            <line x1="115" y1="50" x2="290" y2="8"  stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
+            <line x1="115" y1="50" x2="290" y2="92" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round"/>
+            {/* Pivot dot */}
+            <circle cx="115" cy="50" r="3.5" fill="#C9A84C" opacity="0.75"/>
+          </svg>
+
+          {/* Review snippets sitting in the blade gap */}
+          <div
+            ref={snippetsRef}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "175px",
+              transform: "translateY(-50%)",
+              opacity: 0,
+              pointerEvents: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+            }}
+          >
+            {snippets.map((s, i) => (
+              <p
+                key={i}
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontStyle: "italic",
+                  fontSize: "13px",
+                  fontWeight: 300,
+                  color: "hsl(40 20% 96% / 0.85)",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1.3,
+                }}
+              >
+                "{s.q}" <span style={{ color: "#C9A84C", fontSize: "11px", fontStyle: "normal", fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.15em", textTransform: "uppercase" }}>— {s.a}</span>
+              </p>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* ── Section content ── */}
       <div className="container">
         <div className="grid gap-12 md:grid-cols-12 mb-20">
           <div className="md:col-span-5 reveal">
             <span className="text-xs uppercase tracking-[0.3em] text-primary">— Services</span>
             <div className="relative mt-6">
-              {/* Version 1: Fraunces (default) */}
               <h2
                 ref={heading1Ref}
                 className="font-display text-5xl md:text-6xl leading-[1.02]"
@@ -156,13 +169,12 @@ export default function Services() {
                 Six things,<br />
                 <span className="italic font-light">done properly.</span>
               </h2>
-              {/* Version 2: Cormorant Garamond italic — shown while scissors cross */}
               <h2
                 ref={heading2Ref}
                 className="absolute inset-0 text-5xl md:text-6xl leading-[1.02]"
                 aria-hidden="true"
                 style={{
-                  fontFamily: "'Cormorant Garamond', 'Times New Roman', serif",
+                  fontFamily: "'Cormorant Garamond', serif",
                   fontStyle: "italic",
                   fontWeight: 300,
                   opacity: 0,
