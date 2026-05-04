@@ -9,8 +9,25 @@ const team = ["Todd", "Jeremy", "Bob"];
 export default function About() {
   return (
     <section id="about" className="relative py-24 md:py-32 border-t border-border">
-      <div className="container">
-        <div className="reveal flex flex-col justify-center max-w-3xl">
+      <div className="container grid gap-16 md:grid-cols-12 md:gap-12">
+        <div className="md:col-span-6 reveal">
+          <div className="relative">
+            <img
+              src="https://images.unsplash.com/photo-1622287162716-f311baa1a2b8?auto=format&fit=crop&w=1200&q=80"
+              alt="Inside Fade & Co."
+              loading="lazy"
+              className="w-full h-[560px] object-cover border border-border"
+            />
+            <div className="absolute -bottom-8 -right-4 md:-right-8 bg-background border border-border p-6 max-w-[240px] shadow-soft">
+              <p className="font-display text-2xl leading-tight">
+                "Patience, sharp tools, and a good playlist."
+              </p>
+              <p className="mt-3 text-xs uppercase tracking-[0.25em] text-primary">— Todd, founder</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-6 md:pl-8 reveal flex flex-col justify-center">
           <span className="text-xs uppercase tracking-[0.3em] text-primary">— About</span>
           <h2 className="mt-6 font-display text-5xl md:text-6xl leading-[1.02]">
             A shop, not<br />
